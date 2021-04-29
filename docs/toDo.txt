@@ -1,0 +1,6 @@
+1. chatsetattr
+2. Amos Attack
+3. powercards
+4. alterbars
+5. helper
+6. GetWeaponIDs
