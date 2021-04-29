@@ -1,12 +1,11 @@
 on("ready", function () {
     var version = '0.1.0';
-	log("-=> PF_MeleeAmos v" + version + " Loaded ");
+	log("-=> PF_MeleeUmlo v" + version + " Loaded ");
 });
-
 on("chat:message", function(msg){
-    if (msg.type=="api" && msg.content.indexOf("!PF_MeleeAmos") == 0)
+    if (msg.type=="api" && msg.content.indexOf("!PF_MeleeUmlo") == 0)
     {
-        const showLog = false;
+        const showLog = true;
 
         var chatMessage = "";
         var params = {};
@@ -34,8 +33,6 @@ on("chat:message", function(msg){
         function getCharacterInfo(characterID)
         {
             values["characterName"] = getAttrByName(characterID, "character_name");
-            values["swiftAction"] = getAttrByName(characterID, "swiftAction")
-            values["intimidate"] = parseInt(getAttrByName(characterID, "Intimidate-ranks")) + parseInt(getAttrByName(characterID, "Intimidate-misc"))            
             var player_obj = getObj("player", msg.playerid);
             values["bgColor"] =  player_obj.get("color");
         }
@@ -116,17 +113,6 @@ on("chat:message", function(msg){
         chatMessage += `\n--?? $atk.base >= ${values.critTarget} ?? Confirm Critical Hit|Roll: [[ [$crt] 1d20cs>${values.critTarget}+${values.attackBonus}]]`;
         chatMessage += `\n--?? $atk.base >= ${values.critTarget} AND $crt.base > 1 AND $crt.total >= ${values.targetAC} ?? Critical Damage|[[ [$crtdmg] ${values.critDamageRoll}]]`;
         chatMessage += `\n--?? $atk.base >= ${values.critTarget} AND $crt.base == 1 OR $crt.total < ${values.targetAC} ?? Damage|[[ [$dmg2] ${values.damageRoll}]]`;
-        if (values.swiftAction > 0)
-        {
-            lowerSwift = true;
-            chatMessage += `\n--?? $atk.base > 1 AND $atk.total >= ${values.targetAC} ?? Intimidate|[[1d20 + ${values.intimidate}]]`;
-            chatMessage += `\n--?? $atk.base > 1 AND $atk.total >= ${values.targetAC} ?? api_setattr|_name ${values.characterName} _swiftAction|${values.swiftAction -1} _silent`
-            chatMessage += `\n--?? $atk.base > 1 AND $atk.total >= ${values.targetAC} ?? Hurtful Attack|[[ [$hrt] 1d20cs>${values.critTarget}+${values.attackBonus}]]`
-            chatMessage += `\n--?? $atk.base > 1 AND $atk.total >= ${values.targetAC} AND $hrt.base > 1 AND $hrt.total >= ${values.targetAC} AND $hrt.base < ${values.critTarget} ?? Hurtful Damage|[[ [$hrtdmg] ${values.damageRoll}]]`
-            chatMessage += `\n--?? $atk.base > 1 AND $atk.total >= ${values.targetAC} AND $hrt.base >= ${values.critTarget} ?? Confirm Hurtful Critical Hit|Roll: [[ [$hcrt] 1d20cs>${values.critTarget}+${values.attackBonus}]]`
-            chatMessage += `\n--?? $atk.base > 1 AND $atk.total >= ${values.targetAC} AND $hrt.base >= ${values.critTarget} AND $hcrt.total >= ${values.targetAC} ?? Hurtful Critical Damage|[[ [$hrtcrtdmg] ${values.critDamageRoll}]]`
-            chatMessage += `\n--?? $atk.base > 1 AND $atk.total >= ${values.targetAC} AND $hrt.base >= ${values.critTarget} AND $hcrt.total < ${values.targetAC} ?? Hurtful Damage|[[ [$hrtdmg2] ${values.damageRoll}]]`
-        }
 
         chatMessage += `\n--?? $atk.base > 1 AND $atk.total >= ${values.targetAC} ?? vfx_opt|${params.targetTokenID} ${params.characterTokenID} splatter-blood`
     
@@ -135,9 +121,6 @@ on("chat:message", function(msg){
             chatMessage += `\n--?? $atk.base > 1 AND $atk.total >= ${values.targetAC} AND $atk.base < ${values.critTarget} ?? alterbar1|_target|${params.targetTokenID} _bar|1 _amount|-[^dmg]`;
             chatMessage += `\n--?? $atk.base >= ${values.critTarget} AND $crt.base == 1 OR $crt.total < ${values.targetAC} ?? alterbar2|_target|${params.targetTokenID} _bar|1 _amount|-[^dmg2]`;
             chatMessage += `\n--?? $atk.base >= ${values.critTarget} AND $crt.base > 1 AND $crt.total >= ${values.targetAC} ?? alterbar3|_target|${params.targetTokenID} _bar|1 _amount|-[^crtdmg]`;
-            chatMessage += `\n--?? $atk.base > 1 AND $atk.total >= ${values.targetAC} AND $hrt.base > 1 AND $hrt.total >= ${values.targetAC} AND $hrt.base < ${values.critTarget} ?? alterbar4|_target|${params.targetTokenID} _bar|1 _amount|-[^hrtdmg]`;
-            chatMessage += `\n--?? $atk.base > 1 AND $atk.total >= ${values.targetAC} AND $hrt.base >= ${values.critTarget} AND $hcrt.total < ${values.targetAC} ?? alterbar5|_target|${params.targetTokenID} _bar|1 _amount|-[^hrtdmg2]`;
-            chatMessage += `\n--?? $atk.base > 1 AND $atk.total >= ${values.targetAC} AND $hrt.base >= ${values.critTarget} AND $hcrt.total >= ${values.targetAC} ?? alterbar6|_target|${params.targetTokenID} _bar|1 _amount|-[^hrtcrtdmg]`;
         }
 
         chatMessage += powerCardStop;
