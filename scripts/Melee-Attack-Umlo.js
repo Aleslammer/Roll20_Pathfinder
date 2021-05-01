@@ -64,19 +64,53 @@ on("chat:message", function(msg){
             }
         }
 
+        function getSneakDamage(level, critMultiplier)
+        {
+            var diceNum = 1;
+            if (level < 3) { diceNum = 1 * critMultiplier}
+            if (level > 2 && level < 5) { diceNum = 2 * critMultiplier}
+            if (level > 4 && level < 7) { diceNum = 3 * critMultiplier}
+            if (level > 6 && level < 9) { diceNum = 4 * critMultiplier}
+            if (level > 8 && level < 11) { diceNum = 5 * critMultiplier}
+            if (level > 10 && level < 13) { diceNum = 6 * critMultiplier}
+            if (level > 12 && level < 15) { diceNum = 7 * critMultiplier}
+            if (level > 14 && level < 17) { diceNum = 8 * critMultiplier}
+            if (level > 16 && level < 19) { diceNum = 9 * critMultiplier}
+            if (level > 18) { diceNum = 10 * critMultiplier}
+
+            return diceNum + "d6";
+        }
+
         function getWeaponInfo(characterID, weaponID)
         {
             values["weaponName"] = getWeaponValue(characterID, weaponID, "name", "Unknown");
             values["weaponType"] = getWeaponValue(characterID, weaponID, "type", "Unknown");
             values["weaponNotes"] = getWeaponValue(characterID, weaponID, "notes");
-            values["critTarget"] = getWeaponValue(characterID, weaponID, "crit-target");
-            values["attackBonus"] = getWeaponValue(characterID, weaponID, "attack");
+            values["critTarget"] = getWeaponValue(characterID, weaponID, "crit-target", 20);
+            values["attackBonus"] = " [ToAtk]" + getWeaponValue(characterID, weaponID, "attack");
+            if ("Bane" in params)
+            {
+                values["attackBonus"] += " + [Bane] 2"
+            }
+
+            values["attackBonus"] += " + [Misc]" + params.miscAtkBonus
             values["damageDiceNum"] = getWeaponValue(characterID, weaponID, "damage-dice-num", 1);
             values["damageDice"] = getWeaponValue(characterID, weaponID, "damage-die");
-            values["damageBonus"] = getWeaponValue(characterID, weaponID, "damage", 0);
-            values["critMultiplier"] = getWeaponValue(characterID, weaponID, "crit-multiplier", 1);
-            values["damageRoll"] = values.damageDiceNum + "d" + values.damageDice + " + " + values.damageBonus + " + " + params.miscDamage
-            values["critDamageRoll"] = (values.damageDiceNum * values.critMultiplier) + "d" + values.damageDice + " + " + (values.damageBonus * values.critMultiplier)
+            values["damageBonus"] = parseInt(getWeaponValue(characterID, weaponID, "damage", 0));
+            values["critMultiplier"] = getWeaponValue(characterID, weaponID, "crit-multiplier", 2);
+            values["damageRoll"] = values.damageDiceNum + "d" + values.damageDice + " + [Bonus]" + values.damageBonus + " + [Misc] " + params.miscDamage
+            values["critDamageRoll"] = (values.damageDiceNum * values.critMultiplier) + "d" + values.damageDice + " + [Bonus]" + ((values.damageBonus + params.miscDamage) * values.critMultiplier)
+            if ("Bane" in params)
+            {
+                values["damageRoll"] += " + [Bane] 2d6"
+                values["critDamageRoll"] += " + [Bane] " + (2 * values.critMultiplier) + "d6"
+            }
+            
+            if ("Sneak" in params)
+            {
+                values["damageRoll"] += " + [Sneak] " + getSneakDamage(params.level, 1);
+                values["critDamageRoll"] += " + [Sneak] " + getSneakDamage(params.level, values.critMultiplier);
+            }
         }
 
         function validateIntArgs()
@@ -107,8 +141,9 @@ on("chat:message", function(msg){
         chatMessage += `\n--leftsub|${values.weaponType}`;
         chatMessage += `\n--rightsub|${values.weaponNotes}`;
         chatMessage += `\n--!showpic|[x](https://64.media.tumblr.com/0ceb939f8eb94552c6e8c65684df203a/tumblr_inline_p8qbt6m97V1rqrjnu_640.gif)`;
-        chatMessage += `\n--Attack|[[ [$atk] 1d20cs>${values.critTarget}+${values.attackBonus}+${params.miscAtkBonus}]]`;
+        chatMessage += `\n--Attack|[[ [$atk] 1d20cs>${values.critTarget}+${values.attackBonus}]]`;
         chatMessage += `\n--?? $atk.base == 1 OR $atk.total < ${values.targetAC} ?? !Miss:|${values.characterName} missed!`;
+        
         chatMessage += `\n--?? $atk.base > 1 AND $atk.total >= ${values.targetAC} AND $atk.base < ${values.critTarget} ?? Damage|[[ [$dmg] ${values.damageRoll}]]`;
         chatMessage += `\n--?? $atk.base >= ${values.critTarget} ?? Confirm Critical Hit|Roll: [[ [$crt] 1d20cs>${values.critTarget}+${values.attackBonus}]]`;
         chatMessage += `\n--?? $atk.base >= ${values.critTarget} AND $crt.base > 1 AND $crt.total >= ${values.targetAC} ?? Critical Damage|[[ [$crtdmg] ${values.critDamageRoll}]]`;
