@@ -1,3 +1,10 @@
+# Roll20_Pathfinder
+
+Location for pathfinder attack scripts for roll20.
+
+## Scripts
+1. [PF_MeleeAmos]
+
 1. chatsetattr
 2. Amos Attack
 3. powercards
